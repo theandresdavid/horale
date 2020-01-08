@@ -131,6 +131,31 @@ function add(clase, div) {
                      de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
         seleccionar_horario(1)
     })
+    meter_a_horario(clase)
+    horarios_no_bloqueados = no_bloqueados()
+    $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
+                 de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
+    seleccionar_horario(1)
+
+    $('#'+clase._id+' .quitar').click(function(e) {
+        remove(clase)
+    })
+}
+
+function remove(eliminada) {
+    $('#'+eliminada._id).prev().remove()
+    $('#'+eliminada._id).remove()
+    clases = clases.filter(c => c._id !== eliminada._id)
+    horarios = [{horas:[]}]
+    for (var i in clases)
+        meter_a_horario(clases[i])
+    horarios_no_bloqueados = no_bloqueados()
+    $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
+                 de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
+    seleccionar_horario(1)
+}
+
+function meter_a_horario(clase) {
     var horarios_temp = []
     while(horarios.length) {
         var horario_original = horarios.pop()
@@ -158,50 +183,6 @@ function add(clase, div) {
         }
     }
     horarios = horarios_temp
-    horarios_no_bloqueados = no_bloqueados()
-    $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
-                 de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
-    seleccionar_horario(1)
-
-    $('#'+clase._id+' .quitar').click(function(e) {
-        remove(clase)
-    })
-}
-
-function remove(clase) {
-    $('#'+clase._id).prev().remove()
-    $('#'+clase._id).remove()
-    clases = clases.filter(c => c._id !== clase._id)
-    var horarios_temp = []
-    siguiente_horario: while(horarios.length) {
-        var horario = horarios.pop()
-        delete horario[clase._id]
-        horario.horas = horario.horas.filter(h => h.clase !== clase._id)
-        for (var i in horarios_temp) {
-            var horario1 = horarios_temp[i]
-            var mismo = true
-            loop: for (var id in horario1)
-                if (id === 'horas') {
-                    mismo = (JSON.stringify(horario1[id]) === JSON.stringify(horario[id]))
-                    if (!mismo) break loop
-                    for (var i in horario1[id]) {
-                        var h1 = horario1[id][i]
-                        mismo = horario[id].some(h2 => h1.dia == h2.dia && h1.hora == h2.hora && h1.clase == h2.clase)
-                        if (!mismo) break loop
-                    }
-                } else {
-                    mismo = (horario1[id] !== horario[id])
-                    if (!mismo) break loop
-                }
-            if (mismo) continue siguiente_horario
-        }
-        horarios_temp.push(horario)
-    }
-    horarios = horarios_temp
-    horarios_no_bloqueados = no_bloqueados()
-    $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
-                 de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
-    seleccionar_horario(1)
 }
 
 function seleccionar_horario(num) {
