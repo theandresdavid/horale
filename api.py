@@ -1,6 +1,6 @@
 # coding=utf-8
 from pymongo import MongoClient
-db =  MongoClient().db
+db =  MongoClient('mongodb+srv://admin:thewaywesaygoodbye@cluster-rwz5k.gcp.mongodb.net/test?retryWrites=true&w=majority').db
 
 from string import capwords
 from lxml import html
