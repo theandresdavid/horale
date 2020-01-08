@@ -1,0 +1,54 @@
+doctype 5
+html
+    head
+        title horale - @(periodos[periodo])
+        meta(http-equiv="Content-Type", content="text/html; charset=UTF-8")
+        link(rel="shortcut icon", href="@( url_for('static', filename='favicon.ico') )")
+        
+        link(href="//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css", rel="stylesheet")
+        link(rel="stylesheet", media="all", href="@( url_for('static', filename='style.css') )")
+        
+        script(src="//code.jquery.com/jquery-3.4.1.min.js", crossorigin="anonymous")
+        script(src="//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js")
+    body.ui.container
+        navbar.center.aligned
+            h1.ui.header: i horale
+        #add.ui.fluid.search
+            .ui.fluid.left.icon.input
+                i.plus.icon
+                input.prompt(placeholder="Añadir clase . . .", autocomplete="off")
+            .results  
+        .ui.pointing.menu
+            .item.active(data-tab="horarios") Ver horario
+            .item(data-tab="cursos") Detalles de cursos
+        .ui.tab.active(data-tab="horarios")
+            .ui.top.attached.menu
+                a.item#menos: i.fitted.chevron.left.icon
+                .item.active#num 1
+                a.item#mas: i.fitted.chevron.right.icon
+                .right.menu: .ui.slider.checkbox.item
+                    input#sincupo(type="checkbox")
+                    label Ver cursos sin cupo
+            #info.ui.attached.message Puede 
+                b fijar 
+                | los NRCs o 
+                b bloquear 
+                | las horas y profesores que decida.
+            table.attached.ui.unstackable.celled.table
+                tbody#nrcs
+            table.bottom.attached.ui.very.compact.small.unstackable.celled.fixed.center.aligned.table
+                thead: tr
+                    for dia in ['','LUN','MAR','MIE','JUE','VIE','SAB']
+                        th @(dia)
+                tbody: for h in range(6,20)
+                    tr
+                        td @(h):30
+                        for dia in ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+                            td.selectable.hora(id='@(dia)@(h)')
+        .ui.tab(data-tab="cursos")
+            #cursos.ui.fluid.styled.accordion
+        script
+            | var periodo = "@(periodo)"
+            | var niveles = @(niveles|tojson)
+            | var periodos = @(periodos|tojson)
+        script(src="@( url_for('static', filename='main.js') )")

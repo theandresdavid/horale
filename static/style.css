@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css?family=Lexend+Deca|Kulim+Park:200,200i,400,400i,700,700i&display=swap');
+
+body {
+    font-family: 'Lexend Deca', sans-serif;
+    cursor: default;
+}
+
+h1.ui.header {
+    font-family: 'Kulim Park', sans-serif;
+    font-size: 2.5em;
+    padding-top: .5em;
+}
+
+.ui.input input, .ui.search .results .result .title, .ui.menu .item, .ui.styled.accordion .title {
+    font-family: 'Lexend Deca', sans-serif;
+}
+
+*::selection {
+    background: inherit;
+    color: rosybrown;
+    cursor: default;
+}
+
+.center.aligned {
+    text-align: center;
+}
+
+body .ui.tab {
+    margin-bottom: 2em;
+}
+
+td.selectable {
+    cursor: pointer;
+}
+
+.ui.table tbody tr td.selectable.hora.bloqueada {
+    background-color: #db2828;
+    color: #fff;
+}
+
+.ui.table tbody tr td.selectable.hora.bloqueada:hover {
+    background-color: #b22!important;
+    color: #fff!important;
+}
+
+.ui.list a.item {
+    color:brown;
+}
+
+.ui.list a.item:hover {
+    color:brown;
+    opacity: .8;
+}
