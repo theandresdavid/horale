@@ -11,7 +11,7 @@ def quitar_tildes(frase):
     if frase:
         letras = {'á':'a', 'é':'e', 'í':'i', 'ó':'o', 'ú':'u', 'ü':'u',
                   'Á':'A', 'É':'E', 'Í':'I', 'Ó':'O', 'Ú':'U', 'Ü':'U'}
-        for k, v in letras.iteritems():
+        for k, v in letras.items():
             frase = frase.replace(k.decode('utf-8'), v)
     return frase
 
