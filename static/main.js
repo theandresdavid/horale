@@ -38,7 +38,7 @@ $('#add').search({
         }).done(function(data) {
             clase.grupos = data.grupos
             clase.profesores = data.profesores
-            if ($('#'+clase._id).length) {                
+            if ($('#'+clase._id).length) {
                 clases = clases.filter(c => c._id !== clase._id)
                 $('#'+clase._id).parent().remove()
             }
@@ -98,7 +98,7 @@ function add(clase, div) {
             <b>Cupos disponibles:</b> '+grupo.disponibles+'</div>\
             <div class="ui segments">'+items+'</div>\
          </div>')
-        
+
         if (grupo.disponibles < 1)
             $('#'+clase._id+' #'+grupo.nrc).prepend('<div class="ui horizontal basic sincupo red label">Sin cupos</div>')
     }
@@ -162,8 +162,8 @@ function add(clase, div) {
     $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
                  de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
     seleccionar_horario(1)
-    
-    $('#'+clase._id+' a.quitar').click(function(e) {
+
+    $('#'+clase._id+' .quitar').click(function(e) {
         remove(clase)
     })
 }
@@ -207,9 +207,9 @@ function remove(clase) {
 function seleccionar_horario(num) {
     $('.actual').remove()
     $('.hora:not(.bloqueada)').html('')
-    $('#nrcs tr td.selectable:not(.active)').parent().remove()
+    $('#nrcs .fijar:not(.active)').parent().remove()
     $('#num').html(num)
-    
+
     var horario = horarios_no_bloqueados[num-1]
     for (var id in horario) {
         if (id === 'horas')
@@ -224,18 +224,24 @@ function seleccionar_horario(num) {
                 <a><i class="fitted thumbtack icon"></i></a></td>\
                 <td><b>'+horario[id].codigo+':</b>\
                 '+horario[id].nombre+' - NRC '+horario[id].nrc+'</td>\
-                <td class="collapsing selectable cerrar">\
+                <td class="collapsing selectable quitar">\
                 <a><i class="fitted close icon"></i></a></td>\
             </tr>')
-            
+
             if ($('#'+id+' #'+horario[id].nrc+' .sincupo').length)
                 $('#nrcs tr[data-id='+id+'] td:nth-child(2)').append(' (Sin cupo)')
         }
     }
+    $('#nrcs .quitar').click(function(e) {
+        var id = $(this).parent().attr('data-id')
+        $(this).parent().find('.fijar').removeClass('active')
+        var clase = clases.find(c => c._id === id)
+        remove(clase)
+    })
     $('.fijar:not(.active)').click(function(e) {
         var id = $(this).parent().attr('data-id')
         $(this).toggleClass('active')
-        
+
         if ($('#'+id+' .actual').length)
             $('#'+id+' .actual')
                 .addClass('fijado')
@@ -251,20 +257,15 @@ function seleccionar_horario(num) {
                     de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
         seleccionar_horario(1)
     })
-    $('#nrcs .cerrar').click(function(e) {
-        var id = $(this).parent().attr('data-id')
-        var clase = clases.find(c => c._id === id)
-        remove(clase)
-    })
 }
 
 function no_bloqueados() {
-    nrcs_fijados = $('.fijado').parent().map(function(){return this.id})
-    clases_fijadas = $('.fijado').closest('.content').map(function(){return this.id})
+    var nrcs_fijados = $('.fijado').parent().map(function(){return this.id})
+    var clases_fijadas = $('.fijado').closest('.content').map(function(){return this.id})
     var fijados = {}
     for (var i in nrcs_fijados)
         fijados[clases_fijadas[i]] = nrcs_fijados[i]
-    
+
     var solo_con_cupo = ! $('#sincupo').is(':checked')
     var resultado = []
     loop: for (var i in horarios) {
@@ -355,12 +356,12 @@ $(document).mouseup(function () {
         $('#info').html('Se hallaron <b>'+horarios.length+'</b> horarios posibles,\
                      de los cuales <b>'+horarios_no_bloqueados.length+'</b> cumplen con los filtros.')
         seleccionar_horario(1)
-        
+
         $('.hora.bloqueada').html('Desbloquear')
         if (desbloqueando) desbloqueando = false
         else bloqueando = false
     }
-    
+
 })
 
 $('.pointing.menu .item').tab()
