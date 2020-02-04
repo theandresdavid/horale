@@ -1,21 +1,17 @@
-$('.dropdown').dropdown()
-
 clases = []
 horarios = [[]]
-bloqueos = cupos: true, horas:[], grupos:[], niveles:['PG', 'EC']
+bloqueos = cupos: true, horas:[], grupos:[], niveles:[]
 horarios_no_bloqueados = [{}]
 
-horas_de_grupo = (grupo) ->
-  horas = []
-  for sesion in grupo.sesiones
-    for hora in sesion.horas
-      horas.push {dia: sesion.dia, hora:hora.toString()}
-  horas
+$('.dropdown').dropdown()
+$('.checkbox').checkbox('check')
 
-grupo_en_horario = (horario, clase) ->
-  clase_grupo = horario.find (c) -> c.clase_id is clase.id
-  grupo = clase.grupos.find (g) -> g.grupo is clase_grupo.grupo
-  grupo
+$('#niveles .checkbox').change ->
+  if $(this).hasClass('checked')
+    bloqueos.niveles = bloqueos.niveles.filter (n) => n isnt $(this)[0].id
+  else
+    bloqueos.niveles.push $(this)[0].id
+  return
 
 mensaje_en_buscador = (texto) ->
   $('#buscar').append('<div class="ui message">
@@ -31,13 +27,10 @@ $('#actualizar').click ->
   if codigo isnt null
     $('#actualizar').append('<div style="margin-left:.5em" class="ui tiny active inline loader"></div>')
     $('#buscar .message').remove()
-    niveles_no_bloqueados = {}
-    for nivel of niveles when not bloqueos.niveles.some (n) -> n is nivel
-      niveles_no_bloqueados[nivel] = niveles[nivel]
     $.ajax
       type: 'POST',
       url: '/api/' + periodo + '/actualizar/' + codigo
-      data: niveles_no_bloqueados
+      data: niveles
     .done (data) ->
       if 'cantidad' of data
         mensaje_en_buscador 'Se encontraron ' + data.cantidad + ' clases con el código ' + data['codigo'] + '.'
@@ -52,9 +45,16 @@ $('#actualizar').click ->
       return
     return
 
+niveles_no_bloqueados = () ->
+  niveles_no_bloqueados = {}
+  for nivel of niveles when not bloqueos.niveles.some (n) -> n is nivel
+    niveles_no_bloqueados[nivel] = niveles[nivel]
+  niveles_no_bloqueados
+
 $('#buscar .ui.search').search(
   apiSettings:
     url: '/api/' + periodo + '/buscar/{query}'
+    data: niveles_no_bloqueados()
     onResponse: (res) ->
       for clase in res.clases
         clase.title = clase.codigo + " " + clase.curso + " - " + clase.nombre
@@ -62,11 +62,12 @@ $('#buscar .ui.search').search(
       res
   fields:
     results: 'clases'
-  onSelect: (clase, response) ->
+  onSelect: (clase, res) ->
     $('#buscar .ui.search').addClass('loading disabled')
     $('#buscar .message').remove()
     $.ajax
-      url: '/api/' + periodo + '/horarios/' + clase.codigo + '/' + clase.curso + '/' + clase.nivel
+      url: '/api/' + periodo + '/horarios'
+      data: clase
     .done (data) ->
       if data.grupos?
         clase.grupos = data.grupos
@@ -93,21 +94,31 @@ añadir = (clase) ->
   clases.push clase
   horarios = meter_a_horario clase
   horarios_no_bloqueados = no_bloqueados()
-  $('#clases').prepend('<div id="' + clase.id + '"class="ui clearing segment">
-    <div class="ui right floated secondary menu">
-      <a class="item eliminar"><i class="fitted close icon"></i></a>
-    </div><div class="content"></div>
-    </div>')
-  if ('#clases .segment').length == 1
-    $('#' + clase.id).addClass('bottom attached')
-  else
-    $('#' + clase.id).addClass('attached')
+  $('#clases').prepend('<div id="' + clase.id + '" class="item">
+    <div class="content">
+      <a class="ui eliminar right floated label"><i class="fitted delete icon"></i></a>
+      <div class="ui small header">' + clase.title + '</div>
+      <div class="meta">' + clase.description + '</div>
+      <div class="description"></div>
+    </div></div>')
   $('#' + clase.id + ' .eliminar').click ->
     quitar clase
     return
 
   seleccionar_horario 1
   return
+
+horas_de_grupo = (grupo) ->
+  horas = []
+  for sesion in grupo.sesiones
+    for hora in sesion.horas
+      horas.push {dia: sesion.dia, hora:hora.toString()}
+  horas
+
+grupo_en_horario = (horario, clase) ->
+  clase_grupo = horario.find (c) -> c.clase_id is clase.id
+  grupo = clase.grupos.find (g) -> g.grupo is clase_grupo.grupo
+  grupo
 
 meter_a_horario = (clase) ->
   nuevos_horarios = []
@@ -131,19 +142,23 @@ meter_a_horario = (clase) ->
 
 seleccionar_horario = (num) ->
   $('.hora:not(.active)').html('')
-  $('#clases .content').html('')
   $('#num').html(num)
   horario = horarios_no_bloqueados[num-1]
   for clase in clases
     grupo = grupo_en_horario horario, clase
-    $('#' + clase.id + ' .content').html(
-      '<b>' + clase.title + '</b><p>' + clase.description + '</p>
-      <b>NRC</b> ' + grupo.nrc + ' - '
-    )
+    $('#' + clase.id + ' .description').html('<p class="info"></p>')
+    $('#' + clase.id + ' .info').append('<b>NRC</b> ' + grupo.nrc)
     if grupo.disponibles is 1
-      $('#' + clase.id + ' .content').append('<b>1</b> cupo disponible')
+      $('#' + clase.id + ' .info').append(' - <b>1</b> cupo disponible')
     else
-      $('#' + clase.id + ' .content').append('<b>' + grupo.disponibles + '</b> cupos disponibles')
+      $('#' + clase.id + ' .info').append(' - <b>' + grupo.disponibles + '</b> cupos disponibles')
+    $('#' + clase.id + ' .info').append('<div class="profesor">' + grupo.profesor + '</div>')
+
+    $('#' + clase.id + ' .description').append('<p class="horario"></p>')
+    for sesion in grupo.sesiones
+      [prim, ..., ult] = sesion.horas
+      hora = prim + ':30 - ' + (ult+1) + ':30'
+      $('#' + clase.id + ' .horario').append('<div><b>' + sesion.dia + ':</b> ' + hora + '</div>')
     for hora in horas_de_grupo grupo
       $('#' + hora.dia + '-' + hora.hora).html(clase.codigo + ' ' + clase.curso)
   return
@@ -185,7 +200,7 @@ no_bloqueados = () ->
 quitar = (clase) ->
   $('#' + clase.id).remove()
   clases = clases.filter (c) -> c.id isnt clase.id
-  horarios = [{}]
+  horarios = [[]]
   horarios = meter_a_horario clase for clase in clases
   horarios_no_bloqueados = no_bloqueados()
   seleccionar_horario 1

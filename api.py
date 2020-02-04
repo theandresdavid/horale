@@ -22,7 +22,9 @@ def periodos_y_niveles():
                 for nivel in pagina.xpath('//select[@name="nivel"]/option')[1:] }
     return (periodos, niveles)
 
-def actualizar(periodo, codigo, niveles):
+def actualizar(periodo, codigo, niveles=None):
+    if not niveles:
+        (__, niveles) = periodos_y_niveles()
     codigo = codigo[:3].upper()
     clases = []
     for nivel in niveles:
@@ -57,9 +59,13 @@ def actualizar(periodo, codigo, niveles):
     else:
         return {'codigo': codigo}
 
-def buscar(periodo, busca):
-    clases = sorted(db.clases.find({'periodo': periodo}), key= lambda c: c['nombre'])
+def buscar(periodo, busca, niveles=None):
+    if not niveles:
+        (__, niveles) = periodos_y_niveles()
     busca = busca.lower()
+    clases = sorted(db.clases.find(
+        { 'periodo': periodo, 'nivel':{'$in': list(niveles.keys())} }
+    ), key= lambda c: c['nombre'])
 
     sin_tilde = {'á':'a', 'é':'e', 'í':'i', 'ó':'o', 'ú':'u', 'ü':'u',
                  'Á':'A', 'É':'E', 'Í':'I', 'Ó':'O', 'Ú':'U', 'Ü':'U'}
@@ -86,13 +92,13 @@ def buscar(periodo, busca):
     for clase in clases: del clase['_id']
     return { 'clases': clases }
 
-def horarios(periodo, nivel, codigo, curso):
+def horarios(periodo, args):
     pagina = webscrape('https://guayacan.uninorte.edu.co/4PL1CACI0N35/registro/resultado_curso1.php', {
         'valida':'OK',
-        'curso':curso,
-        'mat2':codigo,
+        'curso':args['curso'],
+        'mat2':args['codigo'],
         'datos_periodo':periodo,
-        'datos_nivel':nivel
+        'datos_nivel':args['nivel']
     })
 
     resultados = pagina.xpath('//div[contains(@class, "div")]')
@@ -109,7 +115,8 @@ def horarios(periodo, nivel, codigo, curso):
                 'grupo': int(data[2].strip()),
                 'nrc': data[3].strip(),
                 'matriculados': int(data[4].strip()),
-                'disponibles': int(data[5].strip())
+                'disponibles': int(data[5].strip()),
+                'profesor': []
             }
             sesiones = []
             for item in resultado.xpath('div/div/div/table/tr')[1:]:
@@ -118,11 +125,12 @@ def horarios(periodo, nivel, codigo, curso):
                     for dia in data[2]:
                         horas = [int(militar[:2]) for militar in data[3].split(' - ')]
                         horas = set(h for h in range(horas[0], horas[1]))
+
                         profesor = data[5].split(' - ')
                         profesor = profesor[1].split(' ') + profesor[0].split(' ')
                         profesor = ' '.join(p.capitalize() for p in profesor).replace('?', 'ñ')
-
                         if profesor not in profesores: profesores.append(profesor)
+                        if profesor not in grupo['profesor']: grupo['profesor'].append(profesor)
 
                         sesion = next((s for s in sesiones
                                         if s['dia']==dias[dia] and horas.intersection(s['horas'])
@@ -130,28 +138,25 @@ def horarios(periodo, nivel, codigo, curso):
                         if sesion:
                             if data[4] not in sesion['lugar']:
                                 sesion['lugar'].append(data[4])
-                            if profesor not in sesion['profesor']:
-                                sesion['profesor'].append(profesor)
                             for h in horas.difference(sesion['horas']):
                                 sesion['horas'].append(h)
                         else:
                             sesiones.append({
                                 'dia': dias[dia],
                                 'horas': list(horas),
-                                'lugar': [data[4]],
-                                'profesor': [profesor]
+                                'lugar': [data[4]]
                             })
                 else:
                     profesor = data[-1].split(' - ')
                     profesor = profesor[1].split(' ') + profesor[0].split(' ')
                     profesor = ' '.join(p.capitalize() for p in profesor).replace('?', 'ñ')
                     if profesor not in profesores: profesores.append(profesor)
+                    if profesor not in grupo['profesor']: grupo['profesor'].append(profesor)
 
                     sesiones.append({
                         'dia': None,
                         'horas': [],
-                        'lugar': [data[-2]],
-                        'profesor': [profesor]
+                        'lugar': [data[-2]]
                     })
             grupo['sesiones'] = sesiones
             grupos.append(grupo)

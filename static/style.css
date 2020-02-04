@@ -4,7 +4,7 @@ body, .ui.table thead th {
     cursor: default;
 }
 
-body, .ui.input input, .ui.search .results .result .title, .ui.menu .item, .ui.form input[type=text], .ui.button, .ui.accordion .title:not(.ui) {
+body, .ui.input input, .ui.search .results .result .title, .ui.menu .item, .ui.form input[type=text], .ui.button, .ui.accordion .title:not(.ui), .ui.items .item .content .header {
     font-family: 'Lexend Exa', sans-serif;
     letter-spacing: -.07em;
 }

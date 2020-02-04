@@ -28,6 +28,13 @@ html
                                 
         main.ui.blurring.container
             #buscar
+                .ui.form#niveles
+                    .inline.fields
+                        for nivel in niveles
+                            .field
+                                .ui.checkbox(id="@(nivel)")
+                                    input(type="checkbox")
+                                    label @(niveles[nivel])
                 .ui.fluid.search
                     .ui.fluid.left.icon.input
                         i.plus.icon
@@ -44,10 +51,11 @@ html
                     a.disabled.item#filtrar
                         i.sliders.horizontal.icon
                         | Filtrar
-                    a.item#imprimir(data-content="Imprimir"): i.print.fitted.icon
-                    a.disabled.item#sincronizar(data-content="Sincronizar"): i.sync.fitted.icon
+                    a.item#imprimir: i.print.fitted.icon
+                    a.disabled.item#sincronizar: i.sync.fitted.icon
             .ui.attached.message#info Se halló <b>1</b> horario posible que cumple con los filtros.
-            #clases
+            .ui.bottom.attached.segment
+                .ui.divided.items#clases
             
             table.ui.very.compact.small.unstackable.celled.fixed.center.aligned.table
                 thead: tr

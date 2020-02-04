@@ -23,15 +23,17 @@ def main(periodo):
 
 @app.route('/api/<periodo>/buscar/<busca>')
 def buscar(periodo, busca):
-    return jsonify(api.buscar(periodo, busca))
+    niveles = dict(request.args)
+    return jsonify(api.buscar(periodo, busca, niveles))
 
-@app.route('/api/<periodo>/horarios/<codigo>/<curso>/<nivel>')
-def horarios(periodo, nivel, codigo, curso):
-    return jsonify(api.horarios(periodo, nivel, codigo, curso))
+@app.route('/api/<periodo>/horarios')
+def horarios():
+    args = dict(request.args)
+    return jsonify(api.horarios(periodo, args))
 
 @app.route('/api/<periodo>/actualizar/<codigo>', methods=['POST'])
 def actualizar(periodo, codigo):
-    niveles = dict(request.form)
+    niveles = dict(request.args)
     return api.actualizar(periodo, codigo, niveles)
 
 if __name__ == '__main__':
