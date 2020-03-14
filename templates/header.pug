@@ -1,0 +1,12 @@
+.ui.container
+  .item
+    .logo horale
+  .right.menu
+    .ui.dropdown.item
+      .text @(periodos[periodo])
+        .menu
+          for per in periodos
+            if per == periodo
+              a.active.item(href="/@(per)") @(periodos[per])
+            else
+              a.item(href="/@(per)") @(periodos[per])

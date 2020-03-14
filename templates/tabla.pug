@@ -1,0 +1,10 @@
+table.ui.very.compact.small.unstackable.celled.fixed.center.aligned.table
+  thead
+    tr
+      for dia in ['','LUN','MAR','MIE','JUE','VIE','SAB']
+        th @(dia)
+  tbody: for h in range(6,20)
+    tr
+      td @(h):30
+      for dia in ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+        td.selectable.hora(id="@(dia)-@(h)")

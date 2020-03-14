@@ -1,17 +1,10 @@
 clases = []
 horarios = [[]]
-bloqueos = cupos: true, horas:[], grupos:[], niveles:[]
+bloqueos = cupos: true, horas:[], grupos:[]
 horarios_no_bloqueados = [{}]
 
 $('.dropdown').dropdown()
 $('.checkbox').checkbox('check')
-
-$('#niveles .checkbox').change ->
-  if $(this).hasClass('checked')
-    bloqueos.niveles = bloqueos.niveles.filter (n) => n isnt $(this)[0].id
-  else
-    bloqueos.niveles.push $(this)[0].id
-  return
 
 mensaje_en_buscador = (texto) ->
   $('#buscar').append('<div class="ui message">
@@ -30,7 +23,6 @@ $('#actualizar').click ->
     $.ajax
       type: 'POST',
       url: '/api/' + periodo + '/actualizar/' + codigo
-      data: niveles
     .done (data) ->
       if 'cantidad' of data
         mensaje_en_buscador 'Se encontraron ' + data.cantidad + ' clases con el código ' + data['codigo'] + '.'
@@ -45,16 +37,9 @@ $('#actualizar').click ->
       return
     return
 
-niveles_no_bloqueados = () ->
-  niveles_no_bloqueados = {}
-  for nivel of niveles when not bloqueos.niveles.some (n) -> n is nivel
-    niveles_no_bloqueados[nivel] = niveles[nivel]
-  niveles_no_bloqueados
-
 $('#buscar .ui.search').search(
   apiSettings:
     url: '/api/' + periodo + '/buscar/{query}'
-    data: niveles_no_bloqueados()
     onResponse: (res) ->
       for clase in res.clases
         clase.title = clase.codigo + " " + clase.curso + " - " + clase.nombre
